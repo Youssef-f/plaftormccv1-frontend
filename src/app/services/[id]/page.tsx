@@ -3,17 +3,22 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Service } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
+import React from "react";
+import { useRouter } from "next/navigation";
+
 
 
 export default function ServiceDetails({ params }: { params: { id: string } }) {
 const [service, setService] = useState<Service | null>(null);
 const [loading, setLoading] = useState(true);
+const router = useRouter();
 
 
 useEffect(() => {
-(async () => {
+    (async () => {
+    const { id } = await params;
 try {
-const res = await api<Service>(`/services/${params.id}`);
+const res = await api<Service>(`/services/${id}`);
 setService(res);
 } catch (err) {
 console.error(err);
@@ -55,6 +60,31 @@ className="px-3 py-1 bg-gray-200 rounded-full text-sm"
 
 
 <p className="text-2xl font-bold mt-6">${service.price}</p>
+<div className="flex gap-4 mt-6">
+  <button
+    onClick={() => router.push(`/services/${service.id}/edit`)}
+    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+  >
+    Edit
+  </button>
+
+  <button
+    onClick={async () => {
+      if (!confirm("Are you sure you want to delete this service?")) return;
+
+      try {
+        await api(`/services/${service.id}`, { method: "DELETE" });
+        router.push("/services");
+      } catch (err) {
+        console.error(err);
+      }
+    }}
+    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+  >
+    Delete
+  </button>
+</div>
+
 </CardContent>
 </Card>
 </div>

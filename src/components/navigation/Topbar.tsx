@@ -8,14 +8,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu } from "lucide-react";
+import MobileSidebar from "./MobileSidebar";
 
 export default function Topbar() {
   return (
     <header className="w-full bg-white shadow-sm h-16 flex items-center px-6 justify-between border-b">
-      {/* Mobile menu button (future) */}
-      <button className="md:hidden">
-        <Menu size={24} />
-      </button>
+      <MobileSidebar />
+
 
       <h2 className="text-lg font-semibold hidden md:block">Dashboard</h2>
 
