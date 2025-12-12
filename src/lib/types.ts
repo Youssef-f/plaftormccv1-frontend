@@ -1,10 +1,16 @@
 export type Profile = {
+  id?: number;
+  email?: string;
+  role?: string;
+  verificationStatus?: string;
   displayName: string;
   bio: string;
   skills: string;
   location: string;
   avatarUrl: string;
 };
+
+export type CreatorStats = Record<string, number | string>;
 
 export type Service = {
   id: number;

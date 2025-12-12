@@ -2,9 +2,12 @@ import SidebarLinks from "./SidebarLinks";
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-white shadow-md border-r hidden md:flex flex-col">
-      <div className="px-6 py-4 border-b">
-        <h1 className="text-2xl font-bold">CreatorHub</h1>
+    <aside className="hidden w-64 flex-col border-r border-white/10 bg-white/5 backdrop-blur md:flex">
+      <div className="border-b border-white/10 px-6 py-4">
+        <h1 className="text-2xl font-bold text-white">CreatorHub</h1>
+        <p className="text-xs uppercase tracking-[0.12em] text-slate-300">
+          Control center
+        </p>
       </div>
 
       <SidebarLinks />

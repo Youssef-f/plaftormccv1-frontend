@@ -7,29 +7,36 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu } from "lucide-react";
 import MobileSidebar from "./MobileSidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Topbar() {
+  const { logout } = useAuth();
+
   return (
-    <header className="w-full bg-white shadow-sm h-16 flex items-center px-6 justify-between border-b">
+    <header className="flex h-16 w-full items-center justify-between border-b border-white/10 bg-white/5 px-4 backdrop-blur">
       <MobileSidebar />
 
+      <h2 className="hidden text-lg font-semibold text-white md:block">
+        Dashboard
+      </h2>
 
-      <h2 className="text-lg font-semibold hidden md:block">Dashboard</h2>
-
-      {/* Profile Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Avatar>
-            <AvatarFallback>U</AvatarFallback>
+          <Avatar className="border border-white/20">
+            <AvatarFallback className="bg-white/10 text-white">U</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
           <DropdownMenuItem>My Profile</DropdownMenuItem>
           <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem className="text-red-500">Logout</DropdownMenuItem>
+          <DropdownMenuItem
+            className="text-red-500"
+            onClick={() => logout()}
+          >
+            Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

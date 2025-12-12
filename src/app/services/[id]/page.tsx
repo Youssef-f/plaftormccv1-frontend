@@ -1,92 +1,189 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { Service } from "@/lib/types";
+import { Profile, Service } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import React from "react";
-import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
 
+export default function ServiceDetails() {
+  const { id } = useParams<{ id: string }>();
+  const [service, setService] = useState<Service | null>(null);
+  const [me, setMe] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
+  const tags = useMemo(() => service?.tags?.split(",") || [], [service]);
 
-export default function ServiceDetails({ params }: { params: { id: string } }) {
-const [service, setService] = useState<Service | null>(null);
-const [loading, setLoading] = useState(true);
-const router = useRouter();
-
-
-useEffect(() => {
+  useEffect(() => {
+    if (!id) return;
     (async () => {
-    const { id } = await params;
-try {
-const res = await api<Service>(`/services/${id}`);
-setService(res);
-} catch (err) {
-console.error(err);
-} finally {
-setLoading(false);
-}
-})();
-}, [params.id]);
-
-
-if (loading) return <p className="p-6">Loading service...</p>;
-if (!service) return <p className="p-6">Service not found</p>;
-
-
-const tags = service.tags?.split(",") || [];
-
-
-return (
-<div className="p-6 max-w-3xl mx-auto">
-<Card className="shadow-md rounded-2xl">
-<CardContent className="p-6 space-y-4">
-<h1 className="text-3xl font-bold">{service.title}</h1>
-<p className="text-gray-600">By {service.ownerName}</p>
-
-
-<p>{service.description}</p>
-
-
-<div className="flex gap-2 flex-wrap mt-4">
-{tags.map((tag, i) => (
-<span
-key={i}
-className="px-3 py-1 bg-gray-200 rounded-full text-sm"
->
-{tag.trim()}
-</span>
-))}
-</div>
-
-
-<p className="text-2xl font-bold mt-6">${service.price}</p>
-<div className="flex gap-4 mt-6">
-  <button
-    onClick={() => router.push(`/services/${service.id}/edit`)}
-    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-  >
-    Edit
-  </button>
-
-  <button
-    onClick={async () => {
-      if (!confirm("Are you sure you want to delete this service?")) return;
-
       try {
-        await api(`/services/${service.id}`, { method: "DELETE" });
-        router.push("/services");
+        const res = await api<Service>(`/services/${id}`);
+        setService(res);
+        await api(`/services/${id}/view`, { method: "POST" }).catch(() => null);
       } catch (err) {
         console.error(err);
+        setError(
+          err instanceof Error && err.message
+            ? err.message
+            : "Unable to load this service."
+        );
+      } finally {
+        setLoading(false);
       }
-    }}
-    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-  >
-    Delete
-  </button>
-</div>
+    })();
+  }, [id]);
 
-</CardContent>
-</Card>
-</div>
-);
+  useEffect(() => {
+    (async () => {
+      try {
+        const profile = await api<Profile>("/profile/me");
+        setMe(profile);
+      } catch {
+        setMe(null);
+      }
+    })();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-white">
+        <p>Loading service...</p>
+      </div>
+    );
+  if (!service)
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-white">
+        <p>{error || "Service not found"}</p>
+      </div>
+    );
+
+  const isOwner = Boolean(me?.id && service?.ownerId && me.id === service.ownerId);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-white">
+      <div className="mx-auto max-w-4xl space-y-4">
+        <Card className="border-white/10 bg-white/5 text-white ring-1 ring-white/10">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Service #{service.id}
+                </p>
+                <h1 className="text-3xl font-semibold">{service.title}</h1>
+                <p className="text-sm text-slate-300">
+                  By {service.ownerName || "Creator"}
+                </p>
+              </div>
+              <Badge className="bg-emerald-600 text-white border-transparent">
+                ${service.price}
+              </Badge>
+            </div>
+
+            <p className="text-slate-200 leading-relaxed">
+              {service.description}
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, i) => (
+                <Badge
+                  key={i}
+                  variant="outline"
+                  className="border-white/20 text-white"
+                >
+                  {tag.trim()}
+                </Badge>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-300">
+              <Badge variant="outline" className="border-white/20 text-white">
+                Delivery: {service.deliveryTime} days
+              </Badge>
+              <Badge variant="outline" className="border-white/20 text-white">
+                Owner ID: {service.ownerId}
+              </Badge>
+              <Link
+                href={`/creators/${service.ownerId}`}
+                className="text-secondary underline underline-offset-4"
+              >
+                View creator profile
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {isOwner && (
+                <>
+                  <Button
+                    variant="secondary"
+                    className="bg-secondary text-slate-900 hover:bg-secondary/90"
+                    onClick={() => router.push(`/services/${service.id}/edit`)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    className="bg-rose-500 hover:bg-rose-600"
+                    onClick={async () => {
+                      if (
+                        !confirm(
+                          "Are you sure you want to delete this service? This cannot be undone."
+                        )
+                      )
+                        return;
+
+                      try {
+                        await api(`/services/${service.id}`, { method: "DELETE" });
+                        router.push("/services");
+                      } catch (err) {
+                        setError(
+                          err instanceof Error && err.message
+                            ? err.message
+                            : "Failed to delete service."
+                        );
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </>
+              )}
+
+              <Button
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/5"
+                onClick={() => router.push("/services")}
+              >
+                Back to marketplace
+              </Button>
+            </div>
+            {error && (
+              <p className="text-sm text-rose-200">Error: {error}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-white/10 bg-white/5 text-white ring-1 ring-white/10">
+          <CardContent className="space-y-3 p-6">
+            <p className="text-sm text-slate-300">
+              Have specific requirements? Drop them for the creator.
+            </p>
+            <Textarea
+              placeholder="Share requirements or notes..."
+              className="border-white/10 bg-transparent text-white placeholder:text-slate-400 focus-visible:ring-secondary/60"
+            />
+            <Button className="bg-secondary text-slate-900 hover:bg-secondary/90">
+              Send request
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
