@@ -13,6 +13,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +46,31 @@ export default function LoginPage() {
         err instanceof Error && err.message
           ? err.message
           : "Login failed. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegister(e?: FormEvent) {
+    e?.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await api("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          username: username || email.split("@")[0],
+          email,
+          password,
+        }),
+      });
+      await handleLogin();
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Registration failed. Please try again.";
       setError(message);
     } finally {
       setLoading(false);
@@ -114,10 +141,10 @@ export default function LoginPage() {
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                Access your workspace
+                {mode === "login" ? "Access your workspace" : "Create your account"}
               </p>
               <h2 className="text-2xl font-bold text-slate-900">
-                Sign in to continue
+                {mode === "login" ? "Sign in to continue" : "Register to get started"}
               </h2>
             </div>
             <span className="rounded-full bg-secondary/15 px-3 py-1 text-xs font-semibold text-secondary">
@@ -131,7 +158,23 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={handleLogin}>
+          <form
+            className="space-y-4"
+            onSubmit={mode === "login" ? handleLogin : handleRegister}
+          >
+            {mode === "register" && (
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  Username
+                </label>
+                <Input
+                  placeholder="Your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="h-11 border-slate-200 bg-white text-slate-900 focus-visible:ring-2 focus-visible:ring-secondary/60"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">
                 Email
@@ -166,16 +209,33 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="mt-2 h-11 w-full bg-gradient-to-r from-secondary to-light-blue text-base font-semibold text-white shadow-lg shadow-secondary/30 hover:from-secondary/90 hover:to-light-blue/90"
-              onClick={handleLogin}
+              onClick={mode === "login" ? handleLogin : handleRegister}
             >
-              {loading ? "Signing you in..." : "Continue"}
+              {loading
+                ? mode === "login"
+                  ? "Signing you in..."
+                  : "Creating account..."
+                : mode === "login"
+                  ? "Continue"
+                  : "Create account"}
             </Button>
           </form>
 
-          <p className="mt-6 text-xs text-slate-500">
-            Use the same account for admin and creator access. We detect your
-            permissions and send you to the right destination automatically.
-          </p>
+          <div className="mt-6 flex items-center justify-between text-xs text-slate-600">
+            <span>
+              Use the same account for admin and creator access. We detect your
+              permissions automatically.
+            </span>
+            <button
+              type="button"
+              className="font-semibold text-secondary hover:underline"
+              onClick={() =>
+                setMode((m) => (m === "login" ? "register" : "login"))
+              }
+            >
+              {mode === "login" ? "Create an account" : "Have an account? Sign in"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
