@@ -8,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Profile } from "@/lib/types";
+import { ChangeEvent, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfilePage() {
@@ -23,6 +24,7 @@ export default function ProfilePage() {
     location: "",
     avatarUrl: "",
   });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +60,17 @@ export default function ProfilePage() {
     }
   }
 
+  function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setProfile((p) => ({ ...p, avatarUrl: result }));
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (loading)
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 text-white">
@@ -87,20 +100,44 @@ export default function ProfilePage() {
             )}
 
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border border-white/20">
-                <AvatarFallback>
-                  {profile.displayName?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
+            <Avatar className="h-16 w-16 border border-white/20">
+              {profile.avatarUrl ? (
+                <AvatarImage src={profile.avatarUrl} alt={profile.displayName} />
+              ) : null}
+              <AvatarFallback>
+                {profile.displayName?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
 
+            <div className="flex flex-1 flex-col gap-2">
               <Input
                 placeholder="Avatar Image URL"
                 value={profile.avatarUrl || ""}
                 onChange={(e) =>
                   setProfile({ ...profile, avatarUrl: e.target.value })
                 }
-                className="flex-1 border-white/10 bg-transparent text-white placeholder:text-slate-400 focus-visible:ring-secondary/60"
+                className="border-white/10 bg-transparent text-white placeholder:text-slate-400 focus-visible:ring-secondary/60"
               />
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <Button
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/5"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Upload from device
+                </Button>
+                <p className="text-xs text-slate-400">
+                  JPG/PNG recommended; stored as data URL.
+                </p>
+              </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3">

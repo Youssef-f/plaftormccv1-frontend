@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { API_URL, apiGet } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export default function CreatorVerificationPage() {
     setLoading(true);
     try {
       const data = await apiGet(
-        "http://localhost:8080/api/admin/creators/verifications",
+        `${API_URL}/admin/creators/verifications`,
         token
       );
       setRequests(data);
@@ -39,7 +39,7 @@ export default function CreatorVerificationPage() {
     if (!token) return;
     try {
       await fetch(
-        `http://localhost:8080/api/admin/creators/verifications/${id}/approve`,
+        `${API_URL}/admin/creators/verifications/${id}/approve`,
         {
           method: "PUT",
           headers: {
@@ -58,7 +58,7 @@ export default function CreatorVerificationPage() {
     if (!token) return;
     try {
       await fetch(
-        `http://localhost:8080/api/admin/creators/verifications/${id}/reject`,
+        `${API_URL}/admin/creators/verifications/${id}/reject`,
         {
           method: "PUT",
           headers: {

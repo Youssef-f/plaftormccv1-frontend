@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiDelete, apiGet } from "@/lib/api";
+import { API_URL, apiDelete, apiGet } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ export default function AdminServicesPage() {
     setError("");
     try {
       const data = await apiGet(
-        `http://localhost:8080/api/admin/services?status=${statusFilter}`,
+        `${API_URL}/admin/services?status=${statusFilter}`,
         token
       );
       setServices(data as any[]);
@@ -46,7 +46,7 @@ export default function AdminServicesPage() {
     setError("");
     try {
       // Backend enum values: DRAFT, PENDING_REVIEW, ACTIVE, REJECTED, DISABLED
-      const url = `http://localhost:8080/api/admin/services/${id}/status`;
+      const url = `${API_URL}/admin/services/${id}/status`;
       await fetch(url, {
         method: "PATCH",
         headers: {
@@ -69,7 +69,7 @@ export default function AdminServicesPage() {
     if (!token) return;
     setError("");
     try {
-      await apiDelete(`http://localhost:8080/api/admin/services/${id}`, token);
+      await apiDelete(`${API_URL}/admin/services/${id}`, token);
       load();
     } catch (err) {
       setError(
