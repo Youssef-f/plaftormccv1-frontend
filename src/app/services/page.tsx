@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Service } from "@/lib/types";
@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export default function ServicesPage() {
+function ServicesPageContent() {
   const [services, setServices] = useState<Service[]>([]);
   const [filtered, setFiltered] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
@@ -169,9 +169,7 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {loading && (
-          <p className="text-slate-300">Loading services...</p>
-        )}
+        {loading && <p className="text-slate-300">Loading services...</p>}
         {error && (
           <div className="rounded-xl border border-rose-300/40 bg-rose-50/10 px-4 py-3 text-sm text-rose-100">
             {error}
@@ -226,5 +224,13 @@ export default function ServicesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-white">Loading services...</div>}>
+      <ServicesPageContent />
+    </Suspense>
   );
 }
